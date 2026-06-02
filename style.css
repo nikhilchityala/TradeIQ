@@ -1,0 +1,88 @@
+/* General page styling */
+body {
+    background: #0f172a;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Controls section (file input + buttons) */
+.controls {
+    margin: 20px;
+}
+.controls button {
+    margin: 5px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    background: #1e293b;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.controls button:hover {
+    background: #334155;
+}
+
+/* Dashboard container for cards */
+.dashboard-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px;
+    flex-wrap: wrap;
+}
+
+/* Card styling */
+.card {
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 10px;
+    width: 150px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px cyan;
+}
+
+/* Special hover effects for specific cards */
+#drawdownCard:hover { color: #ff4d4d; }
+#bestDayCard:hover { color: #00ff00; }
+#worstDayCard:hover { color: #ff0000; }
+
+/* Profit Factor card colors */
+.goodPF { color: #00ff00; font-weight: bold; }
+.mediumPF { color: #ffff00; font-weight: bold; }
+.badPF { color: #ff0000; font-weight: bold; }
+
+/* Risk-Reward card colors */
+.goodRR { color: #00ff00; font-weight: bold; }
+.badRR { color: #ff0000; font-weight: bold; }
+
+/* Daily breakdown table */
+#tradeTable {
+    margin: auto;
+    background: white;
+    color: black;
+    border-collapse: collapse;
+    width: 80%;
+}
+#tradeTable th, #tradeTable td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+#tradeTable th {
+    background: #1e293b;
+    color: white;
+}
+
+/* Canvas charts (dark theme) */
+canvas {
+    background: #0f172a;
+    border: 1px solid #334155;
+    margin-top: 10px;
+}
