@@ -2,6 +2,61 @@
 <html>
 <head>
     <title>TradeIQ</title>
+      <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            width: 150px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+       .card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px cyan;
+}
+   #drawdownCard:hover {
+    color: #ff4d4d;
+}
+#bestDayCard:hover {
+    color: #00ff00; /* green glow */
+}
+#worstDayCard:hover {
+    color: #ff0000; /* red glow */
+}
+/* Profit Factor card colors */
+.goodPF {
+    color: #00ff00; /* green */
+    font-weight: bold;
+}
+.mediumPF {
+    color: #ffff00; /* yellow */
+    font-weight: bold;
+}
+.badPF {
+    color: #ff0000; /* red */
+    font-weight: bold;
+}
+
+/* Risk-Reward card colors */
+.goodRR {
+    color: #00ff00; /* green */
+    font-weight: bold;
+}
+.badRR {
+    color: #ff0000; /* red */
+    font-weight: bold;
+}
+
+   </style>
 </head>
 
 <body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding:20px;">
@@ -11,24 +66,57 @@
 <div style="margin:20px;">
     <input type="file" id="fileInput">
     <button onclick="readCSV()">Analyze</button>
+    <button onclick="exportCSV()">Export CSV</button>
+    <button onclick="exportPDF()">Export PDF</button>
 </div>
 
 <!-- DASHBOARD CARDS -->
 <div style="display:flex;justify-content:center;gap:20px;margin:20px;">
-    <div style="background:#1e293b;padding:15px;border-radius:10px;width:150px;">
+    <div class="card">
         <h3>Profit</h3>
         <p id="profitCard">0</p>
     </div>
 
-    <div style="background:#1e293b;padding:15px;border-radius:10px;width:150px;">
+    <div class="card">
         <h3>Win Rate</h3>
         <p id="winRateCard">0%</p>
     </div>
 
-    <div style="background:#1e293b;padding:15px;border-radius:10px;width:150px;">
+    <div class="card">
         <h3>Trades</h3>
         <p id="tradeCard">0</p>
     </div>
+
+    <div class="card">
+    <h3>AI Score</h3>
+    <p id="aiScoreCard">0</p>
+</div>
+
+<div class="card">
+    <h3>Max Drawdown</h3>
+    <p id="drawdownCard">0</p>
+</div>
+
+<div class="card">
+    <h3>Best Day</h3>
+    <p id="bestDayCard">-</p>
+</div>
+
+<div class="card">
+    <h3>Worst Day</h3>
+    <p id="worstDayCard">-</p>
+</div>
+
+<div class="card">
+    <h3>Profit Factor</h3>
+    <p id="profitFactorCard">0</p>
+</div>
+
+<div class="card">
+    <h3>Risk-Reward</h3>
+    <p id="riskRewardCard">0</p>
+</div>
+
 </div>
 
 <p id="result"></p>
@@ -51,6 +139,19 @@
 </table>
 
 <script>
+
+// Global variables
+let dailyMap = {};
+let bestDay = null;
+let worstDay = null;
+let bestProfit = 0;
+let worstProfit = 0;
+let winRate = 0;
+let aiScore = 0;
+let maxDrawdown = 0;
+let profitFactor = 0;
+let riskReward = 0;
+
 function readCSV() {
     let file = document.getElementById("fileInput").files[0];
 
@@ -69,11 +170,15 @@ return;
     let wins = 0;
     let losses = 0;
 
-    let dailyMap = {};
+    dailyMap = {};
+    bestDay = null;
+    worstDay = null;
+    bestProfit = -Infinity;
+    worstProfit = Infinity;
     
     let equity = [];
     let runningProfit = 0;
-   
+
 // BAR CHART
     let canvas = document.getElementById("profitChart");
     let ctx = canvas.getContext("2d");
@@ -132,14 +237,73 @@ row.insertCell(2).innerHTML = profit >= 0 ? "+" + profit : profit;
     }
 }
 
+// ✅ Profit Factor Calculation
+let totalWinProfit = 0;
+let totalLossProfit = 0;
+
+for (let i = 1; i < rows.length; i++) {
+    let cols = rows[i].split(",");
+    let profit = parseFloat(cols[cols.length - 1]);
+
+    if (!isNaN(profit)) {
+        if (profit >= 0) {
+            totalWinProfit += profit;
+        } else {
+            totalLossProfit += Math.abs(profit);
+        }
+    }
+}
+
+if (totalLossProfit === 0) {
+    profitFactor = "∞"; // infinite if no losses
+} else {
+    profitFactor = (totalWinProfit / totalLossProfit).toFixed(2);
+}
+
+// ✅ Risk-Reward Ratio Calculation
+let avgWin = wins > 0 ? totalWinProfit / wins : 0;
+let avgLoss = losses > 0 ? totalLossProfit / losses : 0;
+
+if (avgWin === 0 && avgLoss > 0) {
+    riskReward = "∞"; // only losses
+} else if (avgLoss === 0 && avgWin > 0) {
+    riskReward = "0"; // only wins
+} else {
+    riskReward = (avgLoss / avgWin).toFixed(2);
+}
+
+// Update card
+document.getElementById("riskRewardCard").innerText = riskReward;
+
+// ✅ Color coding Profit Factor
+let pfCard = document.getElementById("profitFactorCard");
+pfCard.className = ""; // reset
+if (profitFactor === "∞" || parseFloat(profitFactor) > 1.5) {
+    pfCard.classList.add("goodPF");
+} else if (parseFloat(profitFactor) >= 1.0) {
+    pfCard.classList.add("mediumPF");
+} else {
+    pfCard.classList.add("badPF");
+}
+
+// ✅ Color coding Risk-Reward
+let rrCard = document.getElementById("riskRewardCard");
+rrCard.className = ""; // reset
+if (riskReward !== "∞" && parseFloat(riskReward) <= 1.0) {
+    rrCard.classList.add("goodRR");
+} else {
+    rrCard.classList.add("badRR");
+}
+
 //AFTER LOOP AND WIN RATE
     let totalTrades = wins + losses;
-    let winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+    winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
 
     //CARDS
     document.getElementById("profitCard").innerText = totalProfit;
     document.getElementById("winRateCard").innerText = winRate.toFixed(2) + "%";
     document.getElementById("tradeCard").innerText = wins + losses;
+    document.getElementById("profitFactorCard").innerText = profitFactor;
 
     //AI SUMMARY
     let summary = "";
@@ -196,6 +360,49 @@ if (winStreak >= 3) {
     summary += " 🔥 You had a strong winning streak. Good momentum.";
 }
 
+// ✅ AI Score System
+aiScore = 0;
+aiScore += winRate; // base from win rate
+if (totalProfit > 0) {
+    aiScore += 10;
+} else {
+    aiScore -= 10;
+}
+aiScore += winStreak * 2;
+aiScore -= lossStreak * 2;
+aiScore = Math.max(0, Math.min(100, aiScore));
+document.getElementById("aiScoreCard").innerText = aiScore.toFixed(0);
+
+// ✅ Drawdown Analysis
+let peakEquity = 0;
+maxDrawdown = 0;
+
+for (let i = 0; i < equity.length; i++) {
+    if (equity[i] > peakEquity) {
+        peakEquity = equity[i];
+    }
+    let drawdown = peakEquity - equity[i];
+    if (drawdown > maxDrawdown) {
+        maxDrawdown = drawdown;
+    }
+}
+document.getElementById("drawdownCard").innerText = maxDrawdown.toFixed(2);
+
+for (let date in dailyMap) {
+    if (dailyMap[date] > bestProfit) {
+        bestProfit = dailyMap[date];
+        bestDay = date;
+    }
+    if (dailyMap[date] < worstProfit) {
+        worstProfit = dailyMap[date];
+        worstDay = date;
+    }
+}
+
+// Update cards
+document.getElementById("bestDayCard").innerText = bestDay + " → " + bestProfit.toFixed(2);
+document.getElementById("worstDayCard").innerText = worstDay + " → " + worstProfit.toFixed(2);
+
 //EQUITY ANALYSIS
   let eqCanvas = document.getElementById("equityChart");
     let eqCtx = eqCanvas.getContext("2d");
@@ -237,6 +444,45 @@ ex += stepX;
     dailySummary;
 };
     reader.readAsText(file);
+}
+
+// END of readCSV()
+
+function exportCSV() {
+    let csvContent = "Date,Profit\n";
+    for (let date in dailyMap) {
+        csvContent += date + "," + dailyMap[date] + "\n";
+    }
+    // Add highlights
+    csvContent += "Best Day," + bestDay + " → " + bestProfit + "\n";
+    csvContent += "Worst Day," + worstDay + " → " + worstProfit + "\n";
+    csvContent += "Win Rate," + winRate.toFixed(2) + "%\n";
+    csvContent += "AI Score," + aiScore.toFixed(0) + "\n";
+    csvContent += "Max Drawdown," + maxDrawdown.toFixed(2) + "\n";
+    csvContent += "Profit Factor," + profitFactor + "\n";
+    csvContent += "Risk-Reward," + riskReward + "\n";
+
+    let blob = new Blob([csvContent], { type: "text/csv" });
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "TradeIQ_Report.csv";
+    link.click();
+}
+
+function exportPDF() {
+    let reportWindow = window.open("", "_blank");
+    reportWindow.document.write("<h1>TradeIQ Report</h1>");
+    reportWindow.document.write(document.getElementById("result").innerHTML);
+    // Add highlights
+    reportWindow.document.write("<p><b>Best Day:</b> " + bestDay + " → " + bestProfit.toFixed(2) + "</p>");
+    reportWindow.document.write("<p><b>Worst Day:</b> " + worstDay + " → " + worstProfit.toFixed(2) + "</p>");
+    reportWindow.document.write("<p><b>Win Rate:</b> " + winRate.toFixed(2) + "%</p>");
+    reportWindow.document.write("<p><b>AI Score:</b> " + aiScore.toFixed(0) + "</p>");
+    reportWindow.document.write("<p><b>Max Drawdown:</b> " + maxDrawdown.toFixed(2) + "</p>");
+    reportWindow.document.write("<p><b>Profit Factor:</b> " + profitFactor + "</p>");
+    reportWindow.document.write("<p><b>Risk-Reward:</b> " + riskReward + "</p>");
+    reportWindow.document.close();
+    reportWindow.print(); // user can save as PDF
 }
 </script>
 
