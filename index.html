@@ -2,20 +2,66 @@
 <html>
 <head>
     <title>TradeIQ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <h1>TradeIQ 📊</h1>
 
+<!-- AUTH SECTION -->
+<div id="authSection">
+  <div id="loginBox">
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p><a href="#" onclick="showRegister()">Create account</a></p>
+    <p><a href="#" onclick="showReset()">Forgot password?</a></p>
+  </div>
+
+  <div id="registerBox" style="display:none;">
+    <h2>Register</h2>
+    <input type="email" id="registerEmail" placeholder="Email">
+    <input type="password" id="registerPassword" placeholder="Password">
+    <button onclick="register()">Register</button>
+    <p><a href="#" onclick="showLogin()">Back to login</a></p>
+  </div>
+
+  <div id="resetBox" style="display:none;">
+    <h2>Forgot Password</h2>
+    <input type="email" id="resetEmail" placeholder="Email">
+    <button onclick="resetPassword()">Reset Password</button>
+    <p><a href="#" onclick="showLogin()">Back to login</a></p>
+  </div>
+</div>
+
+
+<!-- DASHBOARD (hidden until login) -->
+<div id="dashboard" style="display:none;">
+
+  
+<p id="welcomeMsg"></p>
+
+<button onclick="logout()">Logout</button>
+  
 <div class="controls">
     <input type="file" id="fileInput">
     <button onclick="readCSV()">Analyze</button>
     <button onclick="exportCSV()">Export CSV</button>
     <button onclick="exportPDF()">Export PDF</button>
-</div>
+    <button id="themeToggle">Toggle Theme</button>
 
+    <select id="filterSelect">
+  <option value="all">All</option>
+  <option value="daily">Daily</option>
+  <option value="weekly">Weekly</option>
+  <option value="monthly">Monthly</option>
+</select>
+
+</div>
+<div class="dashboard-container">
 <!-- DASHBOARD CARDS -->
-     <div class="dashboard-container">
     <div class="card">
         <h3>Profit</h3>
         <p id="profitCard">0</p>
@@ -65,27 +111,58 @@
     <h3>Sharpe Ratio</h3>
     <p id="sharpeRatioCard">0</p>
 </div>
+
+<div class="card">
+  <h3>Consistency Score</h3>
+  <p id="consistencyCard">0%</p>
 </div>
 
-<p id="result"></p>
+<div class="card">
+  <h3>Sortino Ratio</h3>
+  <p id="sortinoCard">-</p>
+</div>
 
-<!-- TWO SEPARATE CHARTS -->
+<div class="card">
+  <h3>Calmar Ratio</h3>
+  <p id="calmarCard">-</p>
+</div>
 
-<canvas id="profitChart" width="500" height="200"></canvas>
+<div class="card">
+  <h3>Expectancy</h3>
+  <p id="expectancyCard">-</p>
+</div>
+</div>
+
+<div id="profitChart" width="500" height="200" style="max-width:100%;"></div>
 
 <br><br>
 
-<canvas id="equityChart" width="500" height="200"></canvas>
+<div id="equityChart" width="500" height="200" style="max-width:100%;"></div>
 
 <h3>Daily Breakdown</h3>
+
 <table id="tradeTable">
-    <tr>
-        <th>Date</th>
-        <th>Symbol</th>
-        <th>Profit</th>
-    </tr>
+
+<tr>
+<th>Date</th>
+<th>Symbol</th>
+<th>Profit</th>
+</tr>
+
 </table>
-  <!-- External JS -->
-   <script src="script.js"></script>
+
+<div id="result"></div>
+
+</div>
+
+<!-- External JS -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script src="script.js"></script>
+
 </body>
 </html>
